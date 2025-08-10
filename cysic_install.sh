@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # 1. Оновлення пакетів
-echo "Оновлення пакетів..."
+echo "Обновление пакетов [5%=>......................................]"
 sudo apt update -y
 
 # 2. Перевірка та встановлення figlet і lolcat
-echo "Перевірка та встановлення figlet і lolcat..."
+echo "Обновление пакетов [15%=====>.................................]"
 if ! command -v figlet &> /dev/null; then
     sudo apt install figlet -y
 fi
@@ -20,27 +20,43 @@ if command -v figlet &> /dev/null && command -v lolcat &> /dev/null; then
 fi
 
 # 4. Оголошення про початок встановлення
-echo "---"
-echo "Починається встановлення ноди Verifier Cysic."
-echo "---"
+echo "---------------------------------------------------------------"
+echo "---------------Установка ноды Verifier Cysic.------------------"
+echo "---------------------------------------------------------------"
 
 # 5. Запит адреси EVM
-read -p "Будь ласка, введіть вашу EVM адресу для винагороди: " EVM_ADDRESS
+read -p "Пожалуйста, введите ваш EVM адрес для вознаграждения: " EVM_ADDRESS
 
 # 6. Виконання команди встановлення з підстановкою адреси
-echo "Виконання скрипту встановлення..."
+echo "Выполнение скрипта установки [35%=======>.....................]"
 curl -L https://github.com/cysic-labs/cysic-phase3/releases/download/v1.0.0/setup_linux.sh > ~/setup_linux.sh && bash ~/setup_linux.sh "$EVM_ADDRESS"
 
-# 7. Перевірка та встановлення screen
-echo "Перевірка та встановлення screen..."
-if ! command -v screen &> /dev/null; then
-    sudo apt install screen -y
-fi
+# 7. Створення файлу системної служби
+echo "Создание системной службы Cysic [63%===============>..........]"
+sudo tee /etc/systemd/system/cysic.service > /dev/null << EOF
+[Unit]
+Description=Cysic Verifier Node
+After=network-online.target
 
-# 8. Запуск нової сесії screen
-echo "Запуск нової сесії screen під назвою 'cysic'..."
-screen -S cysic
+[Service]
+User=$USER
+ExecStart=/bin/bash -c 'cd $HOME/cysic-verifier && bash start.sh'
+Restart=always
+RestartSec=3
+LimitNOFILE=65535
 
-# 9. Запуск вузла
-echo "Запуск вузла Verifier Cysic..."
-screen -S cysic -X stuff "cd ~/cysic-verifier/ && bash start.sh$(printf '\r')"
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 8. Перезавантаження конфігурації systemd та запуск служби
+echo "Перезагрузка systemd и запуск службы [97%==================>..]"
+sudo systemctl daemon-reload
+sudo systemctl enable cysic
+sudo systemctl start cysic
+
+echo "---------------------------------------------------------------"
+echo "-Установка завершена. Нода Cysic запущена как системная служба-"
+echo "---------------------------------------------------------------"
+echo "Для просмотра логов в реальном времени выполните:"
+echo "sudo journalctl -u cysic -f --no-hostname -o cat"
