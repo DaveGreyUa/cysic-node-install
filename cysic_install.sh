@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # 1. Оновлення пакетів
-echo "Обновление пакетов [5%=>......................................]"
+echo "Обновление пакетов [█░░░░░░░░░░░░░░░░░░░ 5%]"
 sudo apt update -y
 
 # 2. Перевірка та встановлення figlet і lolcat
-echo "Обновление пакетов [15%=====>.................................]"
+echo "Обновление пакетов [███░░░░░░░░░░░░░░░░░ 15%]"
 if ! command -v figlet &> /dev/null; then
     sudo apt install figlet -y
 fi
@@ -28,11 +28,11 @@ echo "---------------------------------------------------------------"
 read -p "Пожалуйста, введите ваш EVM адрес для вознаграждения: " EVM_ADDRESS
 
 # 6. Виконання команди встановлення з підстановкою адреси
-echo "Выполнение скрипта установки [35%=======>.....................]"
+echo "Выполнение скрипта установки [███████░░░░░░░░░░░░░ 35%]"
 curl -L https://github.com/cysic-labs/cysic-phase3/releases/download/v1.0.0/setup_linux.sh > ~/setup_linux.sh && bash ~/setup_linux.sh "$EVM_ADDRESS"
 
 # 7. Створення файлу системної служби
-echo "Создание системной службы Cysic [63%===============>..........]"
+echo "Создание системной службы Cysic [█████████████░░░░░░░░░ 65%]"
 sudo tee /etc/systemd/system/cysic.service > /dev/null << EOF
 [Unit]
 Description=Cysic Verifier Node
@@ -50,7 +50,7 @@ WantedBy=multi-user.target
 EOF
 
 # 8. Перезавантаження конфігурації systemd та запуск служби
-echo "Перезагрузка systemd и запуск службы [97%==================>..]"
+echo "Перезагрузка systemd и запуск службы [█████████████████████░ 95%]"
 sudo systemctl daemon-reload
 sudo systemctl enable cysic
 sudo systemctl start cysic
